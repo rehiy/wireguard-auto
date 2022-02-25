@@ -6,11 +6,20 @@ $wglist = parse_ini_file('config.ini', true);
 
 $global = array_shift($wglist);
 
+wg_vip($global['vip']);
+
+/////////////////////////////////////////////////////////////////
+
 foreach ($wglist as $name => &$node) {
     echo "Create Key Pair for $name \n";
     isset($node['name']) || $node['name'] = $name;
+    isset($node['vip']) || $node['vip'] = wg_vip();
     isset($node['port']) || $node['port'] = $global['port'];
     isset($node['alive']) || $node['alive'] = $global['alive'];
+    isset($node['acl']) || $node['acl'] = $global['acl'];
+    if (empty($node['acl'])) {
+        $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']);
+    }
     $node += wg_key();
 }
 
@@ -38,6 +47,17 @@ function wg_key()
     return compact('pri_key', 'pub_key');
 }
 
+function wg_vip($cidr = '')
+{
+    static $vip, $mask;
+    if ($cidr) {
+        list($vip, $mask) = explode('/', $cidr);
+        $vip = ip2long($vip);
+    } else {
+        return long2ip(++$vip) . '/' . $mask;
+    }
+}
+
 function wg_config_interface($serve)
 {
     $conf = array();
@@ -53,7 +73,7 @@ function wg_config_peer($peer)
     $conf[] = '[Peer]';
     $conf[] = 'PublicKey  = ' . $peer['pub_key'];
     $conf[] = 'Endpoint   = ' . $peer['ip'] . ':' . $peer['port'];
-    $conf[] = 'AllowedIPs = ' . preg_replace('/\d+$/', '32', $peer['vip']);
+    $conf[] = 'AllowedIPs = ' . $peer['acl'];
     $conf[] = 'PersistentKeepalive = ' . $peer['alive'];
     return implode("\n", $conf);
 }
