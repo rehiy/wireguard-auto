@@ -1,6 +1,16 @@
 #!/bin/sh -ex
 #
 
+if [ ! -f master.tar.gz ]; then
+    wget https://github.com/rehiy/wireguard-auto/archive/refs/heads/master.tar.gz
+fi
+
+tar -xvf master.tar.gz && rm master.tar.gz
+
+#####################################################
+
+cd wireguard-auto-master/docker
+
 cp -av ../web-gui www
 cp -av ../template www/api/
 cp -av ../bin/wg.php www/api/
@@ -10,3 +20,9 @@ docker build -t vmlu/wireguard-auto .
 docker push vmlu/wireguard-auto
 
 rm -rf www
+
+#####################################################
+
+cd ../../
+
+rm -rf wireguard-auto-master
