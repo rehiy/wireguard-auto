@@ -85,7 +85,7 @@ app.component('app-home', {
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid justify-content-start">
                 <a class="navbar-brand" href="https://www.rehiy.com/wireguard">
-                    WireGuard 集群配置工具
+                    WireGuard Auto Config Tools
                 </a>
             </div>
         </nav>
