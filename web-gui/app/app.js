@@ -62,6 +62,7 @@ app.component('app-home', {
         return {
             doing: false,
             config: config.trim().replace(/\n\s+/g, '\n'),
+            iturl: location.origin + location.pathname,
             items: []
         };
     },
@@ -104,7 +105,9 @@ app.component('app-home', {
                     <div class="card mt-3" v-for="item in items">
                         <div class="card-body">
                             <h5 class="card-title">{{item.ip}}</h5>
-                            <p class="card-text">{{item.sh}}</p>
+                            <p class="card-text">
+                                wget {{iturl}}{{item.dir}}/alpine | sh -
+                            </p>
                         </div>
                     </div>
                 </div>
