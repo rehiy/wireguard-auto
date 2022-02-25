@@ -63,8 +63,9 @@ function wg_dir($suf = '')
 {
     static $did;
     if (!$suf) {
-        $did = dechex(ip2long($_SERVER['REMOTE_ADDR']));
-        return $did;
+        return $did = dechex(crc32(
+            $_SERVER['HTTP_X_FORWARDED_FOR'] . $_SERVER['REMOTE_ADDR']
+        ));
     } else {
         $dir = 'deploy/' . $did . '-' . $suf;
         is_dir($dir) || mkdir($dir, 0755, true);
