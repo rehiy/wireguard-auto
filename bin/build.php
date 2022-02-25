@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * WireGuard 自动配置
+ * @Author rehiy <wang@rehiy.com>
+ * @Website https://www.rehiy.com
+ */
+
 echo "Create WireGuard Config Files \n";
 
 $wglist = parse_ini_file('config.ini', true);
