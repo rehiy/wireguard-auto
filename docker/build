@@ -1,0 +1,12 @@
+#!/bin/sh -ex
+#
+
+cp -av ../web-gui www
+cp -av ../template www/api/
+cp -av ../bin/wg.php www/api/
+
+docker build -t vmlu/wireguard-auto .
+
+docker push vmlu/wireguard-auto
+
+rm -rf www

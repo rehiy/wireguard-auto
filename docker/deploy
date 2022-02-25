@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+
+apk add wireguard-tools-wg
+
+rm -rf /var/www/default
+mv /ifs/www /var/www/default
+
+sed -i '/disable_functions/d' /etc/php7/php-fpm.d/default.conf
+
+cat << EOF >/etc/nginx/host.d/default.conf
+server {
+
+    listen 80 default_server;
+    listen 443 default_server ssl http2;
+
+    ssl_certificate certs/default.cer;
+    ssl_certificate_key certs/default.key;
+
+    set \$pool default;
+    set \$sitedir /var/www/\$pool;
+
+    root  \$sitedir;
+    index index.php index.html;
+
+    include http.d/server_fastcgi_php;
+
+}
+EOF
+
+rm -rf /ifs
