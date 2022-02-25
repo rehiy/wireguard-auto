@@ -18,7 +18,7 @@ fi
 
 export SERVER_IP=`wget -qO- http://v4.myip.la`
 
-cp -av deploy/$SERVER_IP/* /etc/wireguard/
+cp -av deploy/0-$SERVER_IP/* /etc/wireguard/
 
 ln -sf /etc/wireguard/wg0.start /etc/local.d/
 chmod +x /etc/wireguard/wg0.start

@@ -8,11 +8,11 @@
 
 echo "Create WireGuard Config Files \n";
 
-$wglist = parse_ini_file('config.ini', true);
-
 $global = array_shift($wglist);
 
 wg_vip($global['vip']);
+
+$did = wg_dir();
 
 /////////////////////////////////////////////////////////////////
 
@@ -38,8 +38,7 @@ foreach ($wglist as &$serve) {
             $conf[] = wg_config_peer($peer);
         }
     }
-    $dir = 'deploy/' . $serve['ip'];
-    is_dir($dir) || mkdir($dir, 0755, true);
+    $dir = wg_dir($serve['ip']);
     file_put_contents($dir . '/wg0.conf', implode("\n\n", $conf));
     file_put_contents($dir . '/wg0.start', wg_start_script($serve));
 }
@@ -51,6 +50,19 @@ function wg_key()
     $pri_key = exec('wg genkey');
     $pub_key = exec('echo ' . $pri_key . ' | wg pubkey');
     return compact('pri_key', 'pub_key');
+}
+
+function wg_dir($suf = '')
+{
+    static $did;
+    if (!$suf) {
+        $did = dechex(ip2long($_SERVER['REMOTE_ADDR']));
+        return $did;
+    } else {
+        $dir = 'deploy/' . $did . '-' . $suf;
+        is_dir($dir) || mkdir($dir, 0755, true);
+        return $dir;
+    }
 }
 
 function wg_vip($cidr = '')
@@ -87,8 +99,8 @@ function wg_config_peer($peer)
 function wg_start_script($serve)
 {
     $conf = array();
-    $conf[] = '#!/bin/sh';
-    $conf[] = 'echo 1 > /proc/sys/net/ipv4/ip_forward';
+    $conf[] = '#!/bin/sh' . "\n";
+    $conf[] = 'echo 1 > /proc/sys/net/ipv4/ip_forward' . "\n";
     $conf[] = 'ip link add dev wg0 type wireguard';
     $conf[] = 'wg setconf wg0 /etc/wireguard/wg0.conf';
     $conf[] = 'ip address add dev wg0 ' . $serve['vip'];
