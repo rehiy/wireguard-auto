@@ -8,6 +8,10 @@
 
 echo "Create WireGuard Config Files \n";
 
+if (empty($wglist) || !is_array($wglist) || count($wglist) < 3) {
+    exit("Config Error !");
+}
+
 $global = array_shift($wglist);
 
 wg_vip($global['vip']);
@@ -18,6 +22,7 @@ $did = wg_dir();
 
 foreach ($wglist as $name => &$node) {
     echo "Create Key Pair for $name \n";
+    $node['dir'] = wg_dir($node['ip']);
     isset($node['name']) || $node['name'] = $name;
     isset($node['vip']) || $node['vip'] = wg_vip();
     isset($node['port']) || $node['port'] = $global['port'];
@@ -38,9 +43,11 @@ foreach ($wglist as &$serve) {
             $conf[] = wg_config_peer($peer);
         }
     }
-    $dir = wg_dir($serve['ip']);
-    file_put_contents($dir . '/wg0.conf', implode("\n\n", $conf));
-    file_put_contents($dir . '/wg0.start', wg_start_script($serve));
+    $_conf = implode("\n\n", $conf);
+    $_start = wg_start_script($serve);
+    file_put_contents($serve['dir'] . '/wg0.conf', $_conf);
+    file_put_contents($serve['dir'] . '/wg0.start', $_start);
+    wg_deploy_scripts($serve['dir'], $_conf, $_start);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -106,4 +113,14 @@ function wg_start_script($serve)
     $conf[] = 'ip address add dev wg0 ' . $serve['vip'];
     $conf[] = 'ip link set up dev wg0';
     return implode("\n", $conf);
+}
+
+function wg_deploy_scripts($dir, $conf, $start)
+{
+    foreach (glob('template/*') as $tpl) {
+        $sc = file_get_contents($tpl);
+        $sc = str_replace('{CONF}', $conf, $sc);
+        $sc = str_replace('{START}', $start, $sc);
+        file_put_contents($dir . '/' . basename($tpl), $sc);
+    }
 }
