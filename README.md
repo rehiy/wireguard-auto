@@ -11,4 +11,4 @@
     docker run -d -P vmlu/wireguard-auto
     ```
 
-- 在线部署演示 https://api.rehiy.com/wg
+- 在线部署演示 https://api.vmlu.com/wg
