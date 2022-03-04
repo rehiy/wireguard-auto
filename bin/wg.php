@@ -16,13 +16,12 @@ $global = array_shift($wglist);
 
 wg_vip($global['vip']);
 
-$did = wg_dir();
+$did = wg_dir(null);
 
 /////////////////////////////////////////////////////////////////
 
 foreach ($wglist as $name => &$node) {
     echo "Create Key Pair for $name \n";
-    $node['dir'] = wg_dir($node['ip']);
     isset($node['name']) || $node['name'] = $name;
     isset($node['vip']) || $node['vip'] = wg_vip();
     isset($node['port']) || $node['port'] = $global['port'];
@@ -31,6 +30,7 @@ foreach ($wglist as $name => &$node) {
     if (empty($node['acl'])) {
         $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']);
     }
+    $node['dir'] = wg_dir($node);
     $node += wg_key();
 }
 
@@ -59,15 +59,16 @@ function wg_key()
     return compact('pri_key', 'pub_key');
 }
 
-function wg_dir($suf = '')
+function wg_dir($peer)
 {
     static $did;
-    if (!$suf) {
+    if ($peer == null) {
         return $did = dechex(crc32(
             $_SERVER['HTTP_X_FORWARDED_FOR'] . $_SERVER['REMOTE_ADDR']
         ));
     } else {
-        $dir = 'deploy/' . $did . '-' . $suf;
+        $pre =  $did != '0' ? $did : $peer['name'];
+        $dir = 'deploy/' . $pre . '-' . $peer['ip'];
         is_dir($dir) || mkdir($dir, 0755, true);
         return $dir;
     }
