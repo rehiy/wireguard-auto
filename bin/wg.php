@@ -30,8 +30,10 @@ foreach ($wglist as $name => &$node) {
     if (empty($node['acl'])) {
         $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']);
     }
+    if (empty($node['pri_key']) || empty($node['pub_key'])) {
+        $node += wg_key();
+    }
     $node['dir'] = wg_dir($node);
-    $node += wg_key();
 }
 
 foreach ($wglist as &$serve) {
@@ -49,6 +51,8 @@ foreach ($wglist as &$serve) {
     file_put_contents($serve['dir'] . '/wg0.start', $_start);
     wg_deploy_scripts($serve['dir'], $_conf, $_start);
 }
+
+put_ini_file($wglist, 'deploy/' . $did . '.config.ini');
 
 /////////////////////////////////////////////////////////////////
 
@@ -124,5 +128,25 @@ function wg_deploy_scripts($dir, $conf, $start)
         $sc = str_replace('{CONF}', $conf, $sc);
         $sc = str_replace('{START}', $start, $sc);
         file_put_contents($dir . '/' . basename($tpl), $sc);
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
+function put_ini_file($array, $file, $i = 0)
+{
+    $str = '';
+    $slf = __FUNCTION__;
+    foreach ($array as $k => $v) {
+        if (is_array($v)) {
+            $str .= str_repeat(' ', $i * 2) . "\n[$k]\n";
+            $str .= $slf($v, '', $i + 1);
+        } else
+            $str .= str_repeat(' ', $i * 2) . "$k = $v\n";
+    }
+    if ($file) {
+        return file_put_contents($file, trim($str));
+    } else {
+        return $str;
     }
 }
