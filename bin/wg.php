@@ -27,6 +27,13 @@ foreach ($wglist as $name => &$node) {
     isset($node['port']) || $node['port'] = $global['port'];
     isset($node['alive']) || $node['alive'] = $global['alive'];
     isset($node['acl']) || $node['acl'] = $global['acl'];
+    if (empty($node['peers'])) {
+        if (empty($global['peers'])) {
+            $node['peers'] = array_keys($wglist);
+        } else {
+            $node['peers'] = $global['peers'];
+        }
+    }
     if (empty($node['acl'])) {
         $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']);
     }
@@ -41,7 +48,7 @@ foreach ($wglist as &$serve) {
     $conf = array();
     $conf[] = wg_config_interface($serve);
     foreach ($wglist as $peer) {
-        if ($serve != $peer) {
+        if ($serve != $peer && in_array($peer['name'], $serve['peers'])) {
             $conf[] = wg_config_peer($peer);
         }
     }

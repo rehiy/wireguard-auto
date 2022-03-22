@@ -22,7 +22,7 @@ chmod +x /etc/wireguard/wg0.start
 
 # startup
 
-if [ ! -x /etc/init.d/local ]; then
+if [ ! -x /etc/runlevels/boot/local ]; then
     rc-update add local boot
 fi
 
