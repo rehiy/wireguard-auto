@@ -122,8 +122,8 @@ function wg_start_script($serve)
     $conf[] = '#!/bin/sh' . "\n";
     $conf[] = 'echo 1 > /proc/sys/net/ipv4/ip_forward' . "\n";
     $conf[] = 'ip link add dev wg0 type wireguard';
-    $conf[] = 'wg setconf wg0 /etc/wireguard/wg0.conf';
     $conf[] = 'ip address add dev wg0 ' . $serve['vip'];
+    $conf[] = 'wg setconf wg0 /etc/wireguard/wg0.conf';
     $conf[] = 'ip link set up dev wg0';
     return implode("\n", $conf);
 }
