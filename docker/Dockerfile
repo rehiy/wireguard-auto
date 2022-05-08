@@ -1,4 +1,4 @@
-FROM vmlu/webox:nginx-php
+FROM rehiy/webox:nginx-php
 
 LABEL version="1.0.0" \
       maintainer="wang@rehiy.com"
