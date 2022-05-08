@@ -9,12 +9,18 @@
 echo "Create WireGuard Config Files \n";
 
 if (empty($wglist) || !is_array($wglist) || count($wglist) < 3) {
-    exit("Config Error !");
+    exit('Config Error !');
 }
 
-$global = array_shift($wglist);
+if (isset($wglist['global'])) {
+    $global = array_shift($wglist);
+} else {
+    $global = array();
+}
 
-wg_vip($global['vip']);
+if (isset($global['vip'])) {
+    wg_vip($global['vip']);
+}
 
 $did = wg_dir(null);
 
@@ -22,11 +28,11 @@ $did = wg_dir(null);
 
 foreach ($wglist as $name => &$node) {
     echo "Create Key Pair for $name \n";
-    isset($node['name']) || $node['name'] = $name;
-    isset($node['vip']) || $node['vip'] = wg_vip();
-    isset($node['port']) || $node['port'] = $global['port'];
-    isset($node['alive']) || $node['alive'] = $global['alive'];
-    isset($node['acl']) || $node['acl'] = $global['acl'];
+    isset($node['name']) || ($node['name'] = $name);
+    isset($node['vip']) || ($node['vip'] = wg_vip());
+    isset($node['port']) || ($node['port'] = $global['port']);
+    isset($node['alive']) || ($node['alive'] = $global['alive']);
+    isset($node['acl']) || ($node['acl'] = $global['acl']);
     if (empty($node['peers'])) {
         if (empty($global['peers'])) {
             $node['peers'] = array_keys($wglist);
@@ -74,11 +80,11 @@ function wg_dir($peer)
 {
     static $did;
     if ($peer == null) {
-        return $did = dechex(crc32(
-            $_SERVER['HTTP_X_FORWARDED_FOR'] . $_SERVER['REMOTE_ADDR']
-        ));
+        return $did = dechex(
+            crc32($_SERVER['HTTP_X_FORWARDED_FOR'] . $_SERVER['REMOTE_ADDR'])
+        );
     } else {
-        $pre =  $did != '0' ? $did : $peer['name'];
+        $pre = $did != '0' ? $did : $peer['name'];
         $dir = 'deploy/' . $pre . '-' . $peer['ip'];
         is_dir($dir) || mkdir($dir, 0755, true);
         return $dir;
@@ -140,16 +146,28 @@ function wg_deploy_scripts($dir, $conf, $start)
 
 /////////////////////////////////////////////////////////////////
 
-function put_ini_file($array, $file, $i = 0)
+function put_ini_file($array, $file, $pk = '', $dp = 0)
 {
     $str = '';
     $slf = __FUNCTION__;
     foreach ($array as $k => $v) {
         if (is_array($v)) {
-            $str .= str_repeat(' ', $i * 2) . "\n[$k]\n";
-            $str .= $slf($v, '', $i + 1);
-        } else
-            $str .= str_repeat(' ', $i * 2) . "$k = $v\n";
+            if ($dp == 0) {
+                $str .= "\n[{$k}]\n\n";
+                $str .= $slf($v, '', '', $dp + 1);
+            } else {
+                $str .= $slf($v, '', $k, $dp + 1);
+            }
+        } else {
+            if (strpos($v, '=')) {
+                $v = '"' . $v . '"';
+            }
+            if ($pk) {
+                $str .= "{$pk}[{$k}] = {$v}\n";
+            } else {
+                $str .= "{$k} = {$v}\n";
+            }
+        }
     }
     if ($file) {
         return file_put_contents($file, trim($str));
