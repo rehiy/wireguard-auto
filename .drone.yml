@@ -1,0 +1,19 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: build
+    image: alpine
+    commands:
+      - sh docker/build
+  - name: docker
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: rehiy/webox
+      context: docker
+      tags:
+        - latest
