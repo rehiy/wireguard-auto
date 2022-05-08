@@ -12,17 +12,15 @@ if (empty($wglist) || !is_array($wglist) || count($wglist) < 3) {
     exit('Config Error !');
 }
 
+$global = array();
 if (isset($wglist['global'])) {
     $global = array_shift($wglist);
-} else {
-    $global = array();
-}
-
-if (isset($global['vip'])) {
-    wg_vip($global['vip']);
 }
 
 $did = wg_dir(null);
+$ini = 'deploy/' . $did . '.config.ini';
+
+wg_vip(isset($global['vip']) ? $global['vip'] : '172.21.0.1/22');
 
 /////////////////////////////////////////////////////////////////
 
@@ -65,7 +63,7 @@ foreach ($wglist as &$serve) {
     wg_deploy_scripts($serve['dir'], $_conf, $_start);
 }
 
-put_ini_file($wglist, 'deploy/' . $did . '.config.ini');
+put_ini_file($wglist, $ini);
 
 /////////////////////////////////////////////////////////////////
 
