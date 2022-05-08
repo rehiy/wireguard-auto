@@ -9,4 +9,4 @@ include 'wg.php';
 
 $log = ob_get_clean();
 
-echo json_encode(compact('log', 'wglist'));
+echo json_encode(compact('wglist', 'ini', 'log'));

@@ -67,7 +67,8 @@ app.component('app-home', {
             doing: false,
             config: config.trim().replace(/\n\s+/g, '\n'),
             iturl: location.origin + location.pathname,
-            items: []
+            items: [],
+            dpini: '',
         };
     },
     methods: {
@@ -82,6 +83,7 @@ app.component('app-home', {
                 .then(response => response.json())
                 .then(data => {
                     this.items = data.wglist || [];
+                    this.dpini = data.ini || '';
                     this.doing = false;
                 });
         }
@@ -102,9 +104,12 @@ app.component('app-home', {
                     </div>
                 </div>
                 <div class="col-12 col-md-5">
-                    <div class="mt-3">
+                    <div class="mt-3" v-if="dpini == ''">
                         <button class="form-control btn btn-secondary" v-if="doing">Loading</button>
                         <button class="form-control btn btn-primary" @click="build()" v-else>生成部署命令</button>
+                    </div>
+                    <div class="mt-3" v-else>
+                        <a class="form-control btn btn-primary" :href="iturl+dpini">下载配置文件</a>
                     </div>
                     <div class="card mt-3" v-for="item in items">
                         <div class="card-body">
