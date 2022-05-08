@@ -6,6 +6,7 @@ steps:
     image: alpine
     commands:
       - sh docker/build
+      - cp -av docker/* ./
   - name: docker
     image: plugins/docker
     settings:
@@ -14,6 +15,5 @@ steps:
       password:
         from_secret: docker_password
       repo: rehiy/wireguard-auto
-      context: /drone/src/docker
       tags:
         - latest
