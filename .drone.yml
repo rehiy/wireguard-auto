@@ -14,6 +14,6 @@ steps:
       password:
         from_secret: docker_password
       repo: rehiy/wireguard-auto
-      context: docker
+      context: /drone/src/docker
       tags:
         - latest
