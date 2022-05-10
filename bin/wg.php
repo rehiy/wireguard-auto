@@ -123,12 +123,20 @@ function wg_config_peer($peer)
 function wg_start_script($serve)
 {
     $conf = array();
-    $conf[] = '#!/bin/sh' . "\n";
-    $conf[] = 'echo 1 > /proc/sys/net/ipv4/ip_forward' . "\n";
+    $conf[] = '#!/bin/sh';
+    $conf[] = '';
+    $conf[] = 'sysctl -w net.ipv4.ip_forward=1';
+    $conf[] = '';
     $conf[] = 'ip link add dev wg0 type wireguard';
     $conf[] = 'ip address add dev wg0 ' . $serve['vip'];
     $conf[] = 'wg setconf wg0 /etc/wireguard/wg0.conf';
     $conf[] = 'ip link set up dev wg0';
+    $conf[] = '';
+    $conf[] = 'if type iptables >/dev/null; then';
+    $conf[] = '  iptables -A FORWARD -i wg0 -j ACCEPT';
+    $conf[] = '  iptables -A FORWARD -o wg0 -j ACCEPT';
+    $conf[] = '  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE';
+    $conf[] = 'fi';
     return implode("\n", $conf);
 }
 
