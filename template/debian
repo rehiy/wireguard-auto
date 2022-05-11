@@ -4,7 +4,7 @@
 # setup
 
 if ! type wg >/dev/null; then
-    apk add wireguard-tools
+    apt install wireguard
     mkdir -p /etc/wireguard
 fi
 
@@ -13,3 +13,4 @@ fi
 cat <<EOF >/etc/wireguard/wg0.conf
 {{CONF}}
 EOF
+

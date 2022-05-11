@@ -4,7 +4,9 @@
 # setup
 
 if ! type wg >/dev/null; then
-    apk add wireguard-tools
+    yum install yum-plugin-elrepo
+    yum install epel-release elrepo-release
+    yum install kmod-wireguard wireguard-tools
     mkdir -p /etc/wireguard
 fi
 

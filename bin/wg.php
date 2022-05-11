@@ -57,10 +57,8 @@ foreach ($wglist as &$serve) {
         }
     }
     $_conf = implode("\n\n", $conf);
-    $_start = wg_start_script($serve);
+    wg_deploy_scripts($serve, $_conf);
     file_put_contents($serve['dir'] . '/wg0.conf', $_conf);
-    file_put_contents($serve['dir'] . '/wg0.start', $_start);
-    wg_deploy_scripts($serve['dir'], $_conf, $_start);
 }
 
 put_ini_file($wglist, $ini);
@@ -120,33 +118,13 @@ function wg_config_peer($peer)
     return implode("\n", $conf);
 }
 
-function wg_start_script($serve)
-{
-    $conf = array();
-    $conf[] = '#!/bin/sh';
-    $conf[] = '';
-    $conf[] = 'sysctl -w net.ipv4.ip_forward=1';
-    $conf[] = '';
-    $conf[] = 'ip link add dev wg0 type wireguard';
-    $conf[] = 'ip address add dev wg0 ' . $serve['vip'];
-    $conf[] = 'wg setconf wg0 /etc/wireguard/wg0.conf';
-    $conf[] = 'ip link set up dev wg0';
-    $conf[] = '';
-    $conf[] = 'if type iptables >/dev/null; then';
-    $conf[] = '  iptables -A FORWARD -i wg0 -j ACCEPT';
-    $conf[] = '  iptables -A FORWARD -o wg0 -j ACCEPT';
-    $conf[] = '  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE';
-    $conf[] = 'fi';
-    return implode("\n", $conf);
-}
-
-function wg_deploy_scripts($dir, $conf, $start)
+function wg_deploy_scripts($serve, $_conf)
 {
     foreach (glob('template/*') as $tpl) {
         $sc = file_get_contents($tpl);
-        $sc = str_replace('{CONF}', $conf, $sc);
-        $sc = str_replace('{START}', $start, $sc);
-        file_put_contents($dir . '/' . basename($tpl), $sc);
+        $sc = str_replace('{{CONF}}', $_conf, $sc);
+        $sc = str_replace('{{VIP}}', $serve['vip'], $sc);
+        file_put_contents($serve['dir'] . '/' . basename($tpl), $sc);
     }
 }
 
