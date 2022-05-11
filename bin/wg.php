@@ -153,9 +153,8 @@ function put_ini_file($array, $file, $pk = '', $dp = 0)
             }
         }
     }
-    if ($file) {
-        return file_put_contents($file, trim($str));
-    } else {
+    if ($file === '') {
         return $str;
     }
+    file_put_contents($file, trim($str));
 }
