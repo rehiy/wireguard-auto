@@ -40,6 +40,8 @@ foreach ($wglist as $name => &$node) {
     }
     if (empty($node['acl'])) {
         $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']);
+    } else {
+        $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']) . "," . $node['acl'];
     }
     if (empty($node['pri_key']) || empty($node['pub_key'])) {
         $node += wg_key();
@@ -81,7 +83,7 @@ function wg_dir($peer)
         );
     } else {
         $pre = $did != '0' ? $did : $peer['name'];
-        $dir = 'deploy/' . $pre . '-' . $peer['ip'];
+        $dir = 'deploy/' . $pre . ($peer['ip'] ? '-' . $peer['ip'] : '');
         is_dir($dir) || mkdir($dir, 0755, true);
         return $dir;
     }
@@ -112,7 +114,9 @@ function wg_config_peer($peer)
     $conf = array();
     $conf[] = '[Peer]';
     $conf[] = 'PublicKey  = ' . $peer['pub_key'];
-    $conf[] = 'Endpoint   = ' . $peer['ip'] . ':' . $peer['port'];
+    if ($peer['ip']) {
+        $conf[] = 'Endpoint   = ' . $peer['ip'] . ':' . $peer['port'];
+    }
     $conf[] = 'AllowedIPs = ' . $peer['acl'];
     $conf[] = 'PersistentKeepalive = ' . $peer['alive'];
     return implode("\n", $conf);
