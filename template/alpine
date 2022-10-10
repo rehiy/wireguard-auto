@@ -3,7 +3,7 @@
 
 # setup
 
-if ! type wg >/dev/null; then
+if ! type wg >/dev/null 2> &1; then
     apk add wireguard-tools-wg
     mkdir -p /etc/wireguard
 fi
@@ -20,7 +20,7 @@ cat <<EOF >/etc/wireguard/wg0.start
 
 sysctl -w net.ipv4.ip_forward=1
 
-if type iptables >/dev/null; then
+if type iptables >/dev/null 2>&1; then
   iptables -A FORWARD -i wg0 -j ACCEPT
   iptables -A FORWARD -o wg0 -j ACCEPT
   iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
@@ -34,12 +34,14 @@ EOF
 
 chmod +x /etc/wireguard/wg0.start
 
-# startup
+# auto start
 
 if [ ! -x /etc/runlevels/boot/local ]; then
     rc-update add local boot
 fi
 
 ln -sf /etc/wireguard/wg0.start /etc/local.d/
+
+# startup
 
 /etc/local.d/wg0.start
