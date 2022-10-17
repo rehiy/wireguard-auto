@@ -36,14 +36,24 @@ EOF
 
 chmod +x /etc/wireguard/wg0.start
 
-# auto start
+# service
 
-cat <<EOF >>/etc/rc.d/rc.local
-/etc/wireguard/wg0.start
+cat <<EOF >>/etc/systemd/system/wg0.service
+[Unit]
+Description=wireguard interface 0
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/etc/wireguard/wg0.start
+ExecReload=wg setconf wg0 /etc/wireguard/wg0.conf
+
+[Install]
+WantedBy=multi-user.target
 EOF
 
-chmod +x /etc/rc.local
+chmod +x /etc/systemd/system/wg0.service
 
-# startup
-
-/etc/wireguard/wg0.start
+systemctl enable /etc/systemd/system/wg0.service
+systemctl daemon-reload
+systemctl start wg0
