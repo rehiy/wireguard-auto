@@ -35,4 +35,4 @@ jobs:
           context: ./docker
           push: true
           platforms: linux/amd64,linux/arm64,linux/arm
-          tags: rehiy/webox:latest
+          tags: rehiy/wireguard-auto:latest
