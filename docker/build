@@ -1,8 +1,0 @@
-#!/bin/sh -ex
-#
-
-cd docker
-
-cp -av ../web-gui www
-cp -av ../template www/api/
-cp -av ../bin/wg.php www/api/
