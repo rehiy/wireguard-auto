@@ -54,7 +54,7 @@ foreach ($wglist as &$serve) {
     $conf = array();
     $conf[] = wg_config_interface($serve);
     foreach ($wglist as $peer) {
-        if ($serve != $peer && in_array($peer['name'], $serve['peers'])) {
+        if ($serve != $peer && in_array($peer['name'], $serve['peers']) && in_array($serve['name'], $peer['peers'])) {
             $conf[] = wg_config_peer($peer);
         }
     }
