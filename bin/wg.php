@@ -120,11 +120,11 @@ function wg_config_peer($peer, $lan)
     } else if ($peer['nat_ip']) {
         $conf[] = 'Endpoint   = ' . $peer['nat_ip'] . ':' . $peer['port'];
     }
-    if ($peer['alive']) {
-        $conf[] = 'PersistentKeepalive = ' . $peer['alive'];
-    }
     if ($peer['allow']) {
         $conf[] = 'AllowedIPs = ' . $peer['allow'];
+    }
+    if ($peer['alive']) {
+        $conf[] = 'PersistentKeepalive = ' . $peer['alive'];
     }
     return implode("\n", $conf);
 }
