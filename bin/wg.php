@@ -20,17 +20,17 @@ if (isset($wglist['global'])) {
 $did = wg_dir(null);
 $ini = 'deploy/' . $did . '.config.ini';
 
-wg_vip(isset($global['vip']) ? $global['vip'] : '172.21.0.1/22');
+wg_vip(isset($global['wg0_ip']) ? $global['wg0_ip'] : '172.21.0.1/22');
 
 /////////////////////////////////////////////////////////////////
 
 foreach ($wglist as $name => &$node) {
     echo "Create Key Pair for $name \n";
-    isset($node['name']) || ($node['name'] = $name);
-    isset($node['vip']) || ($node['vip'] = wg_vip());
-    isset($node['port']) || ($node['port'] = $global['port']);
+    empty($node['name']) && ($node['name'] = $name);
+    empty($node['port']) && ($node['port'] = $global['port']);
+    empty($node['wg0_ip']) && ($node['wg0_ip'] = wg_vip());
     isset($node['alive']) || ($node['alive'] = $global['alive']);
-    isset($node['acl']) || ($node['acl'] = $global['acl']);
+    isset($node['allow']) || ($node['allow'] = $global['allow']);
     if (empty($node['peers'])) {
         if (empty($global['peers'])) {
             $node['peers'] = array_keys($wglist);
@@ -38,10 +38,10 @@ foreach ($wglist as $name => &$node) {
             $node['peers'] = $global['peers'];
         }
     }
-    if (empty($node['acl'])) {
-        $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']);
+    if (empty($node['allow'])) {
+        $node['allow'] = preg_replace('/\d+$/', '32', $node['wg0_ip']);
     } else {
-        $node['acl'] = preg_replace('/\d+$/', '32', $node['vip']) . "," . $node['acl'];
+        $node['allow'] = preg_replace('/\d+$/', '32', $node['wg0_ip']) . "," . $node['allow'];
     }
     if (empty($node['pri_key']) || empty($node['pub_key'])) {
         $node += wg_key();
@@ -55,7 +55,7 @@ foreach ($wglist as &$serve) {
     $conf[] = wg_config_interface($serve);
     foreach ($wglist as $peer) {
         if ($serve != $peer && in_array($peer['name'], $serve['peers']) && in_array($serve['name'], $peer['peers'])) {
-            $conf[] = wg_config_peer($peer);
+            $conf[] = wg_config_peer($peer, $serve['group'] == $peer['group']);
         }
     }
     $_conf = implode("\n\n", $conf);
@@ -83,7 +83,8 @@ function wg_dir($peer)
         );
     } else {
         $pre = $did != '0' ? $did : $peer['name'];
-        $dir = 'deploy/' . $pre . ($peer['ip'] ? '-' . $peer['ip'] : '');
+        $vip = $peer['nat_ip'] ? $peer['nat_ip'] : $peer['lan_ip'];
+        $dir = 'deploy/' . $pre . ($vip ? '-' . $vip : '');
         is_dir($dir) || mkdir($dir, 0755, true);
         return $dir;
     }
@@ -109,16 +110,22 @@ function wg_config_interface($serve)
     return implode("\n", $conf);
 }
 
-function wg_config_peer($peer)
+function wg_config_peer($peer, $lan)
 {
     $conf = array();
     $conf[] = '[Peer]';
     $conf[] = 'PublicKey  = ' . $peer['pub_key'];
-    if ($peer['ip']) {
-        $conf[] = 'Endpoint   = ' . $peer['ip'] . ':' . $peer['port'];
+    if ($lan && $peer['lan_ip']) {
+        $conf[] = 'Endpoint   = ' . $peer['lan_ip'] . ':' . $peer['port'];
+    } else if ($peer['nat_ip']) {
+        $conf[] = 'Endpoint   = ' . $peer['nat_ip'] . ':' . $peer['port'];
     }
-    $conf[] = 'AllowedIPs = ' . $peer['acl'];
-    $conf[] = 'PersistentKeepalive = ' . $peer['alive'];
+    if ($peer['alive']) {
+        $conf[] = 'PersistentKeepalive = ' . $peer['alive'];
+    }
+    if ($peer['allow']) {
+        $conf[] = 'AllowedIPs = ' . $peer['allow'];
+    }
     return implode("\n", $conf);
 }
 
@@ -127,7 +134,7 @@ function wg_deploy_scripts($serve, $_conf)
     foreach (glob('template/*') as $tpl) {
         $sc = file_get_contents($tpl);
         $sc = str_replace('{{CONF}}', $_conf, $sc);
-        $sc = str_replace('{{VIP}}', $serve['vip'], $sc);
+        $sc = str_replace('{{VIP}}', $serve['wg0_ip'], $sc);
         file_put_contents($serve['dir'] . '/' . basename($tpl), $sc);
     }
 }
