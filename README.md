@@ -1,5 +1,9 @@
 # WireGuard Auto Config Tools
 
+- 批量生成 WireGuard 配置文件（Mesh模式）
+- 支持局域网和公网多地域混合组网
+- 支持一键部署
+
 ## 离线模式
 
   - Windows 系统，下载项目源码，修改`config.ini`
